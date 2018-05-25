@@ -8,7 +8,7 @@ const saveImage = multer({
 });
 
 
-//returns up to 10 samoyed images TODO: query the redis database, NOT the directory. Redis has a SRANDMEMBER arg
+//returns up to 10 samoyed images TODO: query the mongo database, NOT the directory.
 router.get('/', (req, res) =>{
 
 });
@@ -28,7 +28,7 @@ router.delete('/', (req, res) =>{
     //TODO: user validation. Check passed in API key matches photo associated api key
     fs.unlink(`i/${req.body.photoID}`, (err)=>{
         if (err) throw err;
-        console.log('successfully deleted /tmp/hello');
+        console.log('successfully deleted image');
     });
 });
 
