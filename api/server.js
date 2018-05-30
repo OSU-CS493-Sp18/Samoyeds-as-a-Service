@@ -1,9 +1,10 @@
 const express = require('express');
 const MongoClient = require('mongodb').MongoClient;
-const redisClient = require('redis').createClient();
-const spawnChildProcess = require("child_process").spawn;
-
-const api = require('./api');
+const redisClient = require('redis').createClient({
+        host: 'redis'
+});
+const PythonShell = require("python-shell");
+const api = require('./api/index');
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -45,9 +46,9 @@ MongoClient.connect(mongoURL, function (err, client) {
 
 //By default redis.createClient() will use 127.0.0.1 and port 6379
 redisClient.on('connect', function() {
-    console.log('Redis client connected');
+    console.log('== Redis client connected');
 });
 
 redisClient.on('error', function (err) {
-    console.log('Something went wrong ' + err);
+    console.log('== Redis: Something went wrong ' + err);
 });
