@@ -1,10 +1,7 @@
 const express = require('express');
 const MongoClient = require('mongodb').MongoClient;
-const redisClient = require('redis').createClient({
-        host: 'redis'
-});
 const PythonShell = require("python-shell");
-const api = require('./api/index');
+const api = require('./routes/index');
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -21,6 +18,7 @@ const mongoPassword = process.env.MONGO_PASSWORD;
 const mongoURL = `mongodb://${mongoUser}:${mongoPassword}@${mongoHost}:${mongoPort}/${mongoDBName}`;
 console.log("== Mongo URL:", mongoURL);
 
+
 /*****************************************************************
  *  Route handling
  *****************************************************************/
@@ -35,7 +33,7 @@ app.use('*', function (req, res) {
 /*****************************************************************
  *  Python shell init
  *****************************************************************/
-app.locals.pythonShell = new PythonShell("")
+app.locals.pythonShell = new PythonShell("");
 
 /*****************************************************************
  *  Database + server connection
@@ -47,13 +45,4 @@ MongoClient.connect(mongoURL, function (err, client) {
             console.log("== Server is running on port", port);
         });
     }
-});
-
-//By default redis.createClient() will use 127.0.0.1 and port 6379
-redisClient.on('connect', function() {
-    console.log('== Redis client connected');
-});
-
-redisClient.on('error', function (err) {
-    console.log('== Redis: Something went wrong ' + err);
 });
