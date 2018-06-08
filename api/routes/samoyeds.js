@@ -25,7 +25,7 @@ router.post('/', (req, res) =>{
 
 //Deletes published image by link  if uploaded by requester
 router.delete('/', (req, res) =>{
-    //TODO: user validation. Check passed in API key matches photo associated api key
+    //TODO: user validation. Check passed in API key matches photo associated routes key
     fs.unlink(`i/${req.body.photoID}`, (err)=>{
         if (err) throw err;
         console.log('successfully deleted image');
