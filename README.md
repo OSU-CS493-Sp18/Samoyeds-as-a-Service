@@ -3,8 +3,8 @@ The Samoyed API. request samoyed images, favorite them or upload your own.
 
 ## Endpoints
 
-__GET /samoyed?count=[1-10]__
-	Default of count is 1
+__GET /samoyed?count=[1-10]__\
+	Default of count is 1\
 __POST /samoyed (Requires API Key)__\
 	User must include an image, which will be uploaded\
 __DELETE /samoyed (Requires API Key)__\

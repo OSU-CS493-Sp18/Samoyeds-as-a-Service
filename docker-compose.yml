@@ -1,7 +1,7 @@
 version: '3.6'
 services:
   api:
-    build: api
+    build: .
     restart: always
     command: >
       bash -c "npm install
@@ -9,8 +9,7 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - tmp:/usr/src/app/tmp
-      - ./routes:/usr/src/app/
+      - api:/usr/src/app/
     networks:
       - db-network
     environment:
@@ -29,6 +28,7 @@ services:
       - 27017:27017
     volumes:
       - mongo:/usr/src/app/mongo
+      - ./db-init/:/docker-entrypoint-initdb.d
     environment:
       MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
@@ -41,6 +41,5 @@ networks:
     driver: bridge
 
 volumes:
-  tmp:
   api:
   mongo:

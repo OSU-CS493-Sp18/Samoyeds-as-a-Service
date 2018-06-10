@@ -1,4 +1,6 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
 const MongoClient = require('mongodb').MongoClient;
 const PythonShell = require("python-shell");
 const api = require('./routes/index');
@@ -18,10 +20,14 @@ const mongoPassword = process.env.MONGO_PASSWORD;
 const mongoURL = `mongodb://${mongoUser}:${mongoPassword}@${mongoHost}:${mongoPort}/${mongoDBName}`;
 console.log("== Mongo URL:", mongoURL);
 
-
 /*****************************************************************
  *  Route handling
  *****************************************************************/
+
+// use morgan for logging and bodyparser to make json easier to work with
+app.use(morgan('dev'));
+app.use(bodyParser.json());
+
 app.use('/', api);
 
 app.use('*', function (req, res) {
