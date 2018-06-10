@@ -3,7 +3,7 @@ const fs = require('fs');
 const multer = require('multer');
 
 const saveImage = multer({
-    dest: __dirname + '../i/',
+    dest: __dirname + '/../i/',
     limits: {fileSize: 10000000, files:1},
 });
 
