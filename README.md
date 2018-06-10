@@ -5,11 +5,17 @@ The Samoyed API. request samoyed images, favorite them or upload your own.
 
 __GET /samoyed?count=[1-10]__\
 	Default of count is 1\
+__GET /samoyed/:SID__\
+    Returns Samoyed image specified.\
 __POST /samoyed (Requires API Key)__\
 	User must include an image, which will be uploaded\
 __DELETE /samoyed (Requires API Key)__\
 	User requests a deletion of image they uploaded.
 
+__POST /user/__\
+	Creates a user in mongo\
+__POST /user/login__\
+    Sets up an JWT for the user\
 __GET /users/:UID/__\
 	Returns data on user, including amount of requested pictures and uploaded pictures.\
 __GET /users/:UID/favorites__\
