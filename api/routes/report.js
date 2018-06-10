@@ -1,7 +1,7 @@
 const router = require('express').Router();
 
-const validation = require('../lib/validation');
-const { requireAuthentication } = require('../lib/auth');
+const validation = require('../../lib/validation');
+const { requireAuthentication } = require('../../lib/auth');
 
 const reportSchema = {
     photoID: { required: true },
