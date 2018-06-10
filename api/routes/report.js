@@ -22,10 +22,7 @@ function getFirstReport(mongoDB){
 }
 
 router.get('/', requireAuthentication, (req, res, next) =>{
-    console.log("here");
     const mongoDB = req.app.locals.mongoDB;
-    console.log(`req.user: ${req.user}`);
-    console.log(`req.headers: ${JSON.stringify(req.headers)}`);
     if (req.user !== req.headers.userid) {
         res.status(403).json({
             error: "Unauthorized to access that resource"
@@ -39,7 +36,6 @@ router.get('/', requireAuthentication, (req, res, next) =>{
                     res.status(200).json(report);
                 }
                 else {
-                    console.log("going to heck next?");
                     next();
                 }
             })
