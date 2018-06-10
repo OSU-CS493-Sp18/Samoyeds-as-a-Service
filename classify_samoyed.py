@@ -50,7 +50,7 @@ from time import sleep
 
 
 # pylint: disable=line-too-long
-DATA_URL = 'http://download.tensorflow.org/models/inception_v4_2016_09_09.tar.gz'
+DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
 # pylint: enable=line-too-long
 
 

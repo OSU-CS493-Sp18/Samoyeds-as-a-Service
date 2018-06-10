@@ -9,7 +9,7 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - api:/usr/src/app/
+      - .:/usr/src/app/
     networks:
       - db-network
     environment:

@@ -39,7 +39,7 @@ app.use('*', function (req, res) {
 /*****************************************************************
  *  Python shell init
  *****************************************************************/
-app.locals.pythonShell = new PythonShell("");
+app.locals.pythonShell = new PythonShell("classify_samoyed.py");
 
 /*****************************************************************
  *  Database + server connection
@@ -52,3 +52,4 @@ MongoClient.connect(mongoURL, function (err, client) {
         });
     }
 });
+
