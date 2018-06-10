@@ -8,8 +8,22 @@ const saveImage = multer({
 });
 
 
-//returns up to 10 samoyed images TODO: query the mongo database, NOT the directory.
+
+//returns up to 10 samoyed links TODO: query the mongo database, NOT the directory.
 router.get('/', (req, res) =>{
+  const mongo = req.app.locals.mongoDB;
+  const count = parseInt(req.params.count);
+
+
+
+});
+
+//returns photo with given id TODO: grab from the directory.
+router.get('/:SID', (req, res) =>{
+  const mongo = req.app.locals.mongoDB;
+  const count = parseInt(req.params.count);
+
+
 
 });
 
