@@ -11,17 +11,22 @@ const reportSchema = {
 /*****************************************************************
  *  Pop and send first listed report
  *****************************************************************/
+//TODO: Make admin only able to get to reports
+//TODO: give easy option to add/remove photo from "photos" database
 function getFirstReport(mongoDB){
     const reportCollection = mongoDB.collection('reports');
     return reportCollection.findOneAndDelete({})
         .then((results) => {
-            return Promise.resolve(results[0]);
+            return Promise.resolve(results);
         });
 }
 
 router.get('/', requireAuthentication, (req, res, next) =>{
+    console.log("here");
     const mongoDB = req.app.locals.mongoDB;
-    if (req.user !== req.params.userID) {
+    console.log(`req.user: ${req.user}`);
+    console.log(`req.headers: ${JSON.stringify(req.headers)}`);
+    if (req.user !== req.headers.userid) {
         res.status(403).json({
             error: "Unauthorized to access that resource"
         });
@@ -32,7 +37,9 @@ router.get('/', requireAuthentication, (req, res, next) =>{
             .then((report) => {
                 if (report) {
                     res.status(200).json(report);
-                } else {
+                }
+                else {
+                    console.log("going to heck next?");
                     next();
                 }
             })

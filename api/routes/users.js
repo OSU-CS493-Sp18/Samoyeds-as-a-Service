@@ -2,7 +2,7 @@ const router = require('express').Router();
 const ObjectId = require('mongodb').ObjectId;
 const bcrypt = require('bcryptjs');
 
-const { generateAuthToken, requireAuthentication } = require('../lib/auth');
+const { generateAuthToken, requireAuthentication } = require('../../lib/auth');
 
 function validateUserObject(user) {
     return user && user.username && user.email && user.password;
@@ -77,7 +77,7 @@ function getUserByUserName(username, mongoDB, includePassword) {
 router.post('/login', function (req, res) {
     const mongoDB = req.app.locals.mongoDB;
     let id = null;
-    if (req.body && req.body.username && req.body.password && req.body.userID) {
+    if (req.body && req.body.username && req.body.password) {
 
         getUserByUserName(req.body.username, mongoDB, true)
             .then((user) => {
