@@ -11,7 +11,6 @@ const reportSchema = {
 /*****************************************************************
  *  Pop and send first listed report
  *****************************************************************/
-//TODO: Make admin only able to get to reports
 //TODO: give easy option to add/remove photo from "photos" database
 function getFirstReport(mongoDB){
     const reportCollection = mongoDB.collection('reports');
@@ -23,13 +22,14 @@ function getFirstReport(mongoDB){
 
 router.get('/', requireAuthentication, (req, res, next) =>{
     const mongoDB = req.app.locals.mongoDB;
-    if (req.user !== req.headers.userid) {
+    //Checks "user id" based off of admin key. Pretty janky but works for now.
+    console.log(process.env.ADMIN_KEY);
+    if (process.env.ADMIN_KEY !== req.headers.userid) {
         res.status(403).json({
             error: "Unauthorized to access that resource"
         });
     }
     else{
-        console.log(req.params.userID);
         getFirstReport(mongoDB)
             .then((report) => {
                 if (report) {
