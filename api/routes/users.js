@@ -26,23 +26,48 @@ function insertNewUser(user, mongoDB) {
         });
 }
 
+function checkIfUserExists(username, mongoDB) {
+    const usercollection = mongoDB.collection('users');
+    return usercollection
+        .find({ username: username })
+        .toArray();
+}
+
 router.post('/', function (req, res) {
+
     const mongoDB = req.app.locals.mongoDB;
     if (validateUserObject(req.body)) {
-        insertNewUser(req.body, mongoDB)
-            .then((id) => {
-                res.status(201).json({
-                    _id: id,
-                    links: {
-                        user: `/users/${id}`
-                    }
-                });
+        checkIfUserExists(req.body.username, mongoDB)
+            .then((results) => {
+
+                if (results.length === 0) {
+                    insertNewUser(req.body, mongoDB)
+                        .then((id) => {
+                            res.status(201).json({
+                                _id: id,
+                                links: {
+                                    user: `/users/${id}`
+                                }
+                            });
+                        })
+                        .catch((err) => {
+                            res.status(500).json({
+                                error: "Failed to insert new user."
+                            });
+                        });
+
+                } else{
+                    res.status(400).json({
+                        error: "Request doesn't contain a valid username."
+                    })
+                }
             })
             .catch((err) => {
                 res.status(500).json({
                     error: "Failed to insert new user."
                 });
             });
+
     } else {
         res.status(400).json({
             error: "Request doesn't contain a valid user."
@@ -132,11 +157,26 @@ router.get('/:userID', requireAuthentication, function (req, res, next) {
             error: "Unauthorized to access that resource"
         });
     } else {
-        //Need to figure out how uploads and favorites are being stored into the database.
         getUserByID(req.params.userID, mongoDB, true)
             .then((user) => {
                 if (user) {
-                    res.status(200).json({favorites: user.favorites, uploads: user.uploads});
+
+                    let favorites_links = [];
+                    for (favorite in user.favorites){
+                        favorites_links.push("/samoyeds/" + user.favorites[favorite] + "");
+                    }
+
+                    let uploads_links = [];
+                    for (uploads in user.uploads){
+                        uploads_links.push("/samoyeds/" + user.uploads[uploads] + "");
+                    }
+
+                    res.status(200).json({
+                        username: user.username,
+                        email: user.email,
+                        favorites: favorites_links,
+                        uploads: uploads_links
+                    });
                 } else {
                     next();
                 }
@@ -157,11 +197,19 @@ router.get('/:userID/favorites', requireAuthentication, function (req, res) {
             error: "Unauthorized to access that resource"
         });
     } else {
-        //Need to figure out how favorites are being stored into the database.
         getUserByID(req.params.userID, mongoDB, true)
             .then((user) => {
                 if (user) {
-                    res.status(200).json({favorites: user.favorites});
+
+                    let links = [];
+                    for (favorite in user.favorites){
+                        links.push("/samoyeds/" + user.favorites[favorite] + "");
+                    }
+                    
+                    res.status(200).json({
+                        favorites_links: links
+                    });
+
                 } else {
                     next();
                 }
@@ -186,7 +234,16 @@ router.get('/:userID/uploads', requireAuthentication, function (req, res) {
         getUserByID(req.params.userID, mongoDB, true)
             .then((user) => {
                 if (user) {
-                    res.status(200).json({uploads: user.uploads});
+
+                    let links = [];
+                    for (uploads in user.uploads){
+                        links.push("/samoyeds/" + user.uploads[uploads] + "");
+                    }
+
+                    res.status(200).json({
+                        uploads_links: links
+                    });
+
                 } else {
                     next();
                 }
@@ -199,25 +256,51 @@ router.get('/:userID/uploads', requireAuthentication, function (req, res) {
     }
 });
 
+function checkIfLinkExists(sid, mongoDB) {
+    const samoyeds = mongoDB.collection('samoyeds');
+    const query = { _id: ObjectId(sid) };
+    return samoyeds.find(query).toArray();
+}
+
 function updateOneUser(userID, favorites, mongoDB) {
     const usersCollection = mongoDB.collection('users');
     const myquery = { _id: ObjectId(userID) };
-    const newvalues = { $set: {favorites: favorites} };
-    return usersCollection.updateOne(myquery, newvalues)
-        .then((results) => {
-            return Promise.resolve(results);
-        });
+    const newvalues = { $set: { favorites: favorites } };
+    var photoID;
+
+    for (photoID in favorites) {
+
+        checkIfLinkExists(photoID, mongoDB)
+            .then((results) => {
+                if (results.length === 0) {
+                    res.status(500).json({
+                        error: "Failed to find photo."
+                    });
+                }
+            })
+            .catch((err) => {
+                res.status(500).json({
+                    error: "Failed to find photo."
+                });
+            });
+    }
+
+    return usersCollection.updateOne(myquery,newvalues);
 }
 
 //Adds link to specific photo in user's favorites
 router.put('/:userID/favorites', requireAuthentication, function (req, res) {
     const mongoDB = req.app.locals.mongoDB;
     if (req.user !== req.params.userID) {
+
         res.status(403).json({
             error: "Unauthorized to access that resource"
         });
+
     } else {
-        if (req.body && req.body.favorites) {
+
+        if (req.body && req.body.favorites && Array.isArray(req.body.favorites)) {
+
             updateOneUser(req.params.userID, req.body.favorites, mongoDB)
                 .then((results) => {
                     if (user) {
@@ -235,6 +318,11 @@ router.put('/:userID/favorites', requireAuthentication, function (req, res) {
                         error: "Unable to update favorites. Please try again later."
                     });
                 });
+
+        }else{
+            res.status(400).json({
+                error: "Request needs a user ID and password."
+            })
         }
     }
 });
