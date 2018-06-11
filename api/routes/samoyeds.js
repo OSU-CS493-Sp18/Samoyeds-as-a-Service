@@ -21,7 +21,7 @@ router.get('/', (req, res) =>{
   if (!count || count < 1 || count > 10) {
     count = 1;
   }
-  getRandomSamoyedLinks(count, mongoDB)
+  getRandomSamoyedLinks(count, mongo)
     .then((array) => {
         res.status(201).json({
           image_links: array
