@@ -8,7 +8,7 @@ const saveImage = multer({
     limits: {fileSize: 10000000, files:1},
 });
 
-getRandomSamoyedLinks(count, mongoDB) {
+function getRandomSamoyedLinks(count, mongoDB) {
   const samoyeds = mongoDB.collection('samoyeds');
   const query = { $sample: { size: count } };
   return samoyeds.aggregate(query).toArray();
@@ -34,7 +34,7 @@ router.get('/', (req, res) =>{
     });
 });
 
-checkIfLinkExists(sid, mongoDB) {
+function checkIfLinkExists(sid, mongoDB) {
   const samoyeds = mongoDB.collection('samoyeds');
   const query = { _id: new ObjectId(sid) };
   return samoyeds.find(query).toArray();
