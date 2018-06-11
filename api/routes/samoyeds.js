@@ -11,7 +11,11 @@ const saveImage = multer({
 function getRandomSamoyedLinks(count, mongoDB) {
   const samoyeds = mongoDB.collection('samoyeds');
   const query = { $sample: { size: count } };
-  return samoyeds.aggregate(query).toArray();
+  return samoyeds.aggregate(query)
+      .project({
+        path: 0
+      })
+      .toArray();
 }
 
 // returns up to 10 samoyed links from mongo
@@ -23,6 +27,9 @@ router.get('/', (req, res) =>{
   }
   getRandomSamoyedLinks(count, mongo)
     .then((array) => {
+        array.forEach((item) => {
+            item.link = `/samoyeds/${item._id}`;
+        });
         res.status(201).json({
           image_links: array
         });
@@ -40,14 +47,13 @@ function checkIfLinkExists(sid, mongoDB) {
   return samoyeds.find(query).toArray();
 }
 
-//returns photo with given id
+// returns photo with given id
 router.get('/:SID', (req, res) =>{
   const mongo = req.app.locals.mongoDB;
-  let count = parseInt(req.params.count);
-  checkIfLinkExists(SID, mongo)
+  checkIfLinkExists(req.params.SID, mongo)
     .then((result) => {
       if (result[0]) {
-        res.status(201).sendFile(`../i/${result[0]}`);
+        res.status(201).sendFile(result[0].path);
       }
       else {
         next();
