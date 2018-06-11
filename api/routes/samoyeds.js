@@ -21,11 +21,11 @@ function getRandomSamoyedLinks(count, mongoDB) {
 // returns up to 10 samoyed links from mongo
 router.get('/', (req, res) =>{
   const mongo = req.app.locals.mongoDB;
-  let count = parseInt(req.params.count);
+  let count = parseInt(req.query.count);
   if (!count || count < 1 || count > 10) {
     count = 1;
   }
-  getRandomSamoyedLinks(count, mongo)
+    getRandomSamoyedLinks(count, mongo)
     .then((array) => {
         array.forEach((item) => {
             item.link = `/samoyeds/${item._id}`;
@@ -53,7 +53,7 @@ router.get('/:SID', (req, res) =>{
   checkIfLinkExists(req.params.SID, mongo)
     .then((result) => {
       if (result[0]) {
-        res.status(201).sendFile(result[0].path);
+        res.status(201).sendFile(result[0].path+".jpg");
       }
       else {
         next();
