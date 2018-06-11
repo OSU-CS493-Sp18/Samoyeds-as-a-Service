@@ -1,8 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
+
 const MongoClient = require('mongodb').MongoClient;
-const PythonShell = require("python-shell");
+const pythonShell = require('child_process');
+
+
 const api = require('./api/routes');
 
 const app = express();
@@ -28,6 +31,7 @@ console.log("== Mongo URL:", mongoURL);
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 
+
 app.use('/', api);
 
 app.use('*', function (req, res) {
@@ -39,7 +43,20 @@ app.use('*', function (req, res) {
 /*****************************************************************
  *  Python shell init
  *****************************************************************/
-app.locals.pythonShell = new PythonShell("classify_samoyed.py");
+
+app.locals.pythonShell = pythonShell.spawn('python', ["classify_samoyed.py"]);
+
+app.locals.pythonShell.stdout.on('data', function(data) {
+    console.log(data.toString());
+});
+
+app.locals.pythonShell.on('exit', function(code) {
+    console.log("Exited with code " + code);
+});
+
+app.locals.pythonShell.stderr.on('data', function(data) {
+    console.error(data.toString());
+});
 
 /*****************************************************************
  *  Database + server connection

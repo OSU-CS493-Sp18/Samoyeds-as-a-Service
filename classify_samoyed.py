@@ -133,12 +133,15 @@ def run_inference_on_image():
     create_graph()
     with tf.Session() as sess:
         softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
-        for image in sys.stdin:
-            image = image.strip()
-            if not tf.gfile.Exists(image):
+        sys.stdout.write('== Python shell ready')
+        sys.stdout.flush()
+        for info in sys.stdin:
+            image = info.strip().split(" ")
+
+            if not tf.gfile.Exists(image[0]):
                 pass
             try:
-                image_data = tf.gfile.FastGFile(image, 'rb').read()
+                image_data = tf.gfile.FastGFile(image[0], 'rb').read()
             except Exception:
                 print(1)
                 continue
@@ -153,7 +156,8 @@ def run_inference_on_image():
             top_k = predictions.argsort()[1::][::-1]
             for node_id in top_k:
                 human_string = node_lookup.id_to_string(node_id)
-                print(human_string.split(',')[0])
+                sys.stdout.write(human_string.split(',')[0].split(' ')[0] + " " + image[1])
+                sys.stdout.flush()
                 break
 
 
@@ -166,9 +170,11 @@ def maybe_download_and_extract():
     filepath = os.path.join(dest_directory, filename)
     if not os.path.exists(filepath):
         def _progress(count, block_size, total_size):
-            sys.stdout.write('\r>> Downloading %s %.1f%%' % (
-                filename, float(count * block_size) / float(total_size) * 100.0))
-            sys.stdout.flush()
+            size = float(count * block_size) / float(total_size) * 100.0)
+            if size in [0.0, 25.0, 50.0, 75.0, 100.0]:
+                sys.stdout.write('\r>> Downloading %s %.1f%%' % (
+                    filename, size))
+                sys.stdout.flush()
 
         filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath, _progress)
         print()
