@@ -4,8 +4,6 @@ db.createUser({
   roles: [ { role: "readWrite", db: "users" } ]
 });
 
-
-
 // ID for default images is 24 of the same number, to make naming default files not insane
 for (let i = 0; i < 6; i++) {
     let objID = "";
@@ -17,4 +15,3 @@ for (let i = 0; i < 6; i++) {
         path: `/usr/src/app/api/i/${objID}`
     });
 }
-
