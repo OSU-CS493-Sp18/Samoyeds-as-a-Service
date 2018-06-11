@@ -17,7 +17,7 @@ function getRandomSamoyedLinks(count, mongoDB) {
 // returns up to 10 samoyed links from mongo
 router.get('/', (req, res) =>{
   const mongo = req.app.locals.mongoDB;
-  const count = parseInt(req.params.count);
+  let count = parseInt(req.params.count);
   if (!count || count < 1 || count > 10) {
     count = 1;
   }
@@ -43,11 +43,10 @@ function checkIfLinkExists(sid, mongoDB) {
 //returns photo with given id
 router.get('/:SID', (req, res) =>{
   const mongo = req.app.locals.mongoDB;
-  const count = parseInt(req.params.count);
-  checkIfLinkExists()
+  let count = parseInt(req.params.count);
+  checkIfLinkExists(SID, mongo)
     .then((result) => {
       if (result[0]) {
-        let id = result[0];
         res.status(201).sendFile(`../i/${result[0]}`);
       }
       else {
@@ -59,8 +58,6 @@ router.get('/:SID', (req, res) =>{
         error: "Failed to fetch photo."
       });
     });
-    })
-
 });
 
 //publishes samoyed image, posts link to Redis, and associates upload with user
