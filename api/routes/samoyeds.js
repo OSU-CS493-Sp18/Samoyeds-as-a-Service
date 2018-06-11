@@ -10,7 +10,7 @@ const saveImage = multer({
 
 function getRandomSamoyedLinks(count, mongoDB) {
   const samoyeds = mongoDB.collection('samoyeds');
-  const query = { $sample: { size: count } };
+  const query = [{ $sample: { size: count } }];
   return samoyeds.aggregate(query)
       .project({
         path: 0
