@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const ObjectId = require('mongodb').ObjectId;
 
 const validation = require('../../lib/validation');
 const { requireAuthentication } = require('../../lib/auth');
@@ -33,6 +34,9 @@ router.get('/', requireAuthentication, (req, res, next) =>{
         getFirstReport(mongoDB)
             .then((report) => {
                 if (report) {
+                    console.log(report);
+                    report.accept = `/report/accept/${report.value.photoID}`;
+                    report.reject = `/report/reject/${report.value.photoID}`;
                     res.status(200).json(report);
                 }
                 else {
@@ -84,5 +88,68 @@ router.post('/', (req, res) =>{
     }
 });
 
+/*****************************************************************
+ *  Accept/Reject report
+ *****************************************************************/
+router.post('/accept/:PID', (req, res) =>{
+    const mongoDB = req.app.locals.mongoDB;
+    if (process.env.ADMIN_KEY !== req.headers.userid) {
+        res.status(403).json({
+            error: "Unauthorized to access that resource"
+        });
+    }
+    else{
+        mongoDB.collection('samoyeds').findOne({_id: req.params.PID})
+            .then((result)=>{
+                console.log("result: " + result);
+                if(result !== null){
+                    res.status(200).json({
+                        success: "Photo is already in the database"
+                    })
+                }
+                else{
+                    mongoDB.collection('samoyeds').insert({
+                        _id: req.params.PID
+                    })
+                        .then( () =>{
+                            res.status(200).json({
+                                success: "Photo inserted successfully"
+                            });
+                        });
+
+                }
+            });
+    }
+});
+
+router.post('/reject/:PID', (req, res) =>{
+    //check if ID is in database and delete if it is
+    const mongoDB = req.app.locals.mongoDB;
+    if (process.env.ADMIN_KEY !== req.headers.userid) {
+        res.status(403).json({
+            error: "Unauthorized to access that resource"
+        });
+    }
+    else{
+        mongoDB.collection('samoyeds').findOne({_id: req.params.PID})
+            .then((result)=>{
+                console.log("result: " + result);
+                if(result !== null){
+                    mongoDB.collection('samoyeds').deleteOne({_id: req.params.PID}, function (err, obj) {
+                        if (err) throw err;
+                        console.log("1 document deleted");
+                        res.status(200).json({
+                            success: "Photo deleted successfully"
+                        });
+                    })
+                }
+                else{
+                    res.status(200).json({
+                        success: "Photo was not in the database"
+                    })
+                }
+            });
+    }
+});
 exports.router = router;
 
