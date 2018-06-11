@@ -224,11 +224,33 @@ router.post('/', requireAuthentication, (req, res) =>{
 
 //Deletes published image by link  if uploaded by requester
 router.delete('/', (req, res) =>{
-    //TODO: user validation. Check passed in API key matches photo associated routes key
-    fs.unlink(`i/${req.body.photoID}`, (err)=>{
-        if (err) throw err;
-        console.log('successfully deleted image');
-    });
+    //check if ID is in database and delete if it is
+    const mongoDB = req.app.locals.mongoDB;
+    if (req.user !== req.body.userID) {
+        res.status(403).json({
+            error: "Unauthorized to access that resource"
+        });
+    }
+    else{
+        mongoDB.collection('samoyeds').findOne({_id: req.body.photoID})
+            .then((result)=>{
+                console.log("result: " + result);
+                if(result !== null){
+                    mongoDB.collection('samoyeds').deleteOne({_id: req.body.photoID}, function (err, obj) {
+                        if (err) throw err;
+                        console.log("1 document deleted");
+                        res.status(200).json({
+                            success: "Photo deleted successfully"
+                        });
+                    })
+                }
+                else{
+                    res.status(200).json({
+                        success: "Photo was not in the database"
+                    })
+                }
+            });
+    }
 });
 
 exports.router = router;
