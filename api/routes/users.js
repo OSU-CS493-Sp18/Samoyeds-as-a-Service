@@ -14,7 +14,9 @@ function insertNewUser(user, mongoDB) {
             const userDocument = {
                 username: user.username,
                 email: user.email,  //We can take out email. Not needed at all.
-                password: passwordHash
+                password: passwordHash,
+                uploads: [],
+                favorites: []
             };
             const usersCollection = mongoDB.collection('users');
             return usersCollection.insertOne(userDocument);
@@ -47,19 +49,6 @@ router.post('/', function (req, res) {
         })
     }
 });
-
-function getUserByID(userID, mongoDB, includePassword) {
-    const usersCollection = mongoDB.collection('users');
-    const projection = includePassword ? {} : { password: 0 };
-
-    return usersCollection
-        .find({ "_id": ObjectId( userID ) })
-        .project(projection)
-        .toArray()
-        .then((results) => {
-            return Promise.resolve(results[0]);
-        });
-}
 
 function getUserByUserName(username, mongoDB, includePassword) {
     const usersCollection = mongoDB.collection('users');
@@ -121,6 +110,19 @@ router.post('/login', function (req, res) {
     }
 });
 
+function getUserByID(userID, mongoDB, includePassword) {
+    const usersCollection = mongoDB.collection('users');
+    const projection = includePassword ? {} : { password: 0 };
+
+    return usersCollection
+        .find({ "_id": ObjectId( userID ) })
+        .project(projection)
+        .toArray()
+        .then((results) => {
+            return Promise.resolve(results[0]);
+        });
+
+}
 
 //Fetches user uploads and favorites from MongoDB
 router.get('/:userID', requireAuthentication, function (req, res, next) {
@@ -131,6 +133,19 @@ router.get('/:userID', requireAuthentication, function (req, res, next) {
         });
     } else {
         //Need to figure out how uploads and favorites are being stored into the database.
+        getUserByID(req.params.userID, mongoDB, true)
+            .then((user) => {
+                if (user) {
+                    res.status(200).json({favorites: user.favorites, uploads: user.uploads});
+                } else {
+                    next();
+                }
+            })
+            .catch((err) => {
+                res.status(500).json({
+                    error: "Unable to fetch uploads and/or favorites.  Please try again later."
+                });
+            });
     }
 });
 
@@ -143,6 +158,19 @@ router.get('/:userID/favorites', requireAuthentication, function (req, res) {
         });
     } else {
         //Need to figure out how favorites are being stored into the database.
+        getUserByID(req.params.userID, mongoDB, true)
+            .then((user) => {
+                if (user) {
+                    res.status(200).json({favorites: user.favorites});
+                } else {
+                    next();
+                }
+            })
+            .catch((err) => {
+                res.status(500).json({
+                    error: "Unable to fetch favorites.  Please try again later."
+                });
+            });
     }
 });
 
@@ -155,12 +183,60 @@ router.get('/:userID/uploads', requireAuthentication, function (req, res) {
         });
     } else {
         //Need to figure out how uploads are being stored into the database.
+        getUserByID(req.params.userID, mongoDB, true)
+            .then((user) => {
+                if (user) {
+                    res.status(200).json({uploads: user.uploads});
+                } else {
+                    next();
+                }
+            })
+            .catch((err) => {
+                res.status(500).json({
+                    error: "Unable to fetch uploads.  Please try again later."
+                });
+            });
     }
 });
 
+function updateOneUser(userID, favorites, mongoDB) {
+    const usersCollection = mongoDB.collection('users');
+    const myquery = { _id: ObjectId(userID) };
+    const newvalues = { $set: {favorites: favorites} };
+    return usersCollection.updateOne(myquery, newvalues)
+        .then((results) => {
+            return Promise.resolve(results);
+        });
+}
+
 //Adds link to specific photo in user's favorites
-router.put('/:userID/favorites', function (req, res) { //Does this need requireAuthentication??????
-    //Who is doing this route?
+router.put('/:userID/favorites', requireAuthentication, function (req, res) {
+    const mongoDB = req.app.locals.mongoDB;
+    if (req.user !== req.params.userID) {
+        res.status(403).json({
+            error: "Unauthorized to access that resource"
+        });
+    } else {
+        if (req.body && req.body.favorites) {
+            updateOneUser(req.params.userID, req.body.favorites, mongoDB)
+                .then((results) => {
+                    if (user) {
+                        res.status(200).json({
+                            links: {
+                                user: `/users/${req.params.userID}/favorites`
+                            }
+                        });
+                    } else {
+                        next();
+                    }
+                })
+                .catch((err) => {
+                    res.status(500).json({
+                        error: "Unable to update favorites. Please try again later."
+                    });
+                });
+        }
+    }
 });
 
 exports.router = router;
