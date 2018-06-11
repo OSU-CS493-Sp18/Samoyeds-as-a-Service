@@ -159,8 +159,15 @@ router.get('/:userID/uploads', requireAuthentication, function (req, res) {
 });
 
 //Adds link to specific photo in user's favorites
-router.put('/:userID/favorites', function (req, res) { //Does this need requireAuthentication??????
-    //Who is doing this route?
+router.put('/:userID/favorites', requireAuthentication, function (req, res) {
+    const mongoDB = req.app.locals.mongoDB;
+    if (req.user !== req.params.userID) {
+        res.status(403).json({
+            error: "Unauthorized to access that resource"
+        });
+    } else {
+        //Who is doing this route????
+    }
 });
 
 exports.router = router;
