@@ -53,7 +53,7 @@ router.get('/', (req, res) =>{
         array.forEach((item) => {
             item.link = `/samoyeds/${item._id}`;
         });
-        res.status(201).json({
+        res.status(200).json({
           image_links: array
         });
       })
@@ -76,7 +76,7 @@ router.get('/:SID', (req, res) =>{
   checkIfLinkExists(req.params.SID, mongo)
     .then((result) => {
       if (result[0]) {
-        res.status(201).sendFile(result[0].path);
+        res.status(200).sendFile(result[0].path);
       }
       else {
         next();

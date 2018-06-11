@@ -170,7 +170,7 @@ def maybe_download_and_extract():
     filepath = os.path.join(dest_directory, filename)
     if not os.path.exists(filepath):
         def _progress(count, block_size, total_size):
-            size = float(count * block_size) / float(total_size) * 100.0)
+            size = float(count * block_size) / float(total_size * 100.0)
             if size in [0.0, 25.0, 50.0, 75.0, 100.0]:
                 sys.stdout.write('\r>> Downloading %s %.1f%%' % (
                     filename, size))
