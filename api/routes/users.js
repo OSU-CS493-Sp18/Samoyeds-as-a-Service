@@ -376,7 +376,6 @@ router.put('/:userID/favorites', requireAuthentication, function (req, res) {
 
             for (let fav in req.body.favorites){
                 if (req.body.favorites[fav].length !== 24){
-                    console.log("Not 24 ------");
                     check = false;
                     res.status(400).json({
                         error: "Unable to find photo"
