@@ -318,12 +318,7 @@ function checkIfLinkExists(sid, mongoDB) {
         .find(query)
         .toArray()
         .then((results) => {
-        
-            // console.log("results of samoyeds: ");
-            // console.log(results);
-
             return Promise.resolve(results);
-
         });
 }
 
@@ -337,6 +332,24 @@ function updateOneUser(userID, favorites, mongoDB, res) {
             if (!results || results.length < favorites.length){
                 return Promise.reject(false);
             }else{
+
+                let checker;
+
+                for (let f in favorites){
+                    checker = false;
+
+                    for (let r in results){
+
+                        if( favorites[f] == results[r]._id){
+                            checker = true;
+                        }
+                    }
+
+                    if (checker === false){
+                        return Promise.reject(false);
+                    }
+                }
+
                 return usersCollection.updateOne(myquery, newvalues)
                     .then((results) => {
                         return Promise.resolve(true);
