@@ -207,7 +207,7 @@ router.get('/:userID/favorites', requireAuthentication, function (req, res) {
                     }
                     
                     res.status(200).json({
-                        favorites_links: links
+                        favorites: links
                     });
 
                 } else {
@@ -241,7 +241,7 @@ router.get('/:userID/uploads', requireAuthentication, function (req, res) {
                     }
 
                     res.status(200).json({
-                        uploads_links: links
+                        uploads: links
                     });
 
                 } else {
@@ -256,36 +256,94 @@ router.get('/:userID/uploads', requireAuthentication, function (req, res) {
     }
 });
 
+// Finished but throws warning with promises being missed
+// function checkIfLinkExists(sid, mongoDB) {
+//     const samoyeds = mongoDB.collection('samoyeds');
+//     const query = { _id: new ObjectId(sid) };
+//
+//     return samoyeds
+//         .find(query)
+//         .toArray()
+//         .then((results) => {
+//
+//             console.log("results of samoyeds: " + results);
+//
+//             if (results && results.length > 0){
+//                 return Promise.resolve(true);
+//             }
+//
+//             return Promise.resolve(false);
+//
+//         });
+// }
+//
+// function updateOneUser(userID, favorites, mongoDB, res) {
+//     const usersCollection = mongoDB.collection('users');
+//     const myquery = { _id: ObjectId(userID) };
+//     const newvalues = { $set: { favorites: favorites } };
+//     let photoID;
+//
+//     for (photoID in favorites) {
+//
+//         checkIfLinkExists(favorites[photoID], mongoDB)
+//             .then((results) => {
+//                 if (!results){
+//                     res.status(400).json({
+//                         error: "Unable to find photo"
+//                     });
+//                 }
+//             });
+//
+//     }
+//
+//     return usersCollection.updateOne(myquery, newvalues)
+//         .then((results) => {
+//             return Promise.resolve(true);
+//         });
+//
+// }
+
+
 function checkIfLinkExists(sid, mongoDB) {
     const samoyeds = mongoDB.collection('samoyeds');
-    const query = { _id: ObjectId(sid) };
-    return samoyeds.find(query).toArray();
+    let queryarry = [];
+
+    for (let s in sid){
+        queryarry.push( ObjectId(sid[s]) );
+    }
+
+    const query = { _id: { $in: queryarry } };
+
+    return samoyeds
+        .find(query)
+        .toArray()
+        .then((results) => {
+        
+            // console.log("results of samoyeds: ");
+            // console.log(results);
+
+            return Promise.resolve(results);
+
+        });
 }
 
-function updateOneUser(userID, favorites, mongoDB) {
+function updateOneUser(userID, favorites, mongoDB, res) {
     const usersCollection = mongoDB.collection('users');
     const myquery = { _id: ObjectId(userID) };
     const newvalues = { $set: { favorites: favorites } };
-    var photoID;
 
-    for (photoID in favorites) {
-
-        checkIfLinkExists(photoID, mongoDB)
-            .then((results) => {
-                if (results.length === 0) {
-                    res.status(500).json({
-                        error: "Failed to find photo."
+    return checkIfLinkExists(favorites, mongoDB)
+        .then((results) => {
+            if (!results || results.length < favorites.length){
+                return Promise.reject(false);
+            }else{
+                return usersCollection.updateOne(myquery, newvalues)
+                    .then((results) => {
+                        return Promise.resolve(true);
                     });
-                }
-            })
-            .catch((err) => {
-                res.status(500).json({
-                    error: "Failed to find photo."
-                });
-            });
-    }
+            }
+        });
 
-    return usersCollection.updateOne(myquery,newvalues);
 }
 
 //Adds link to specific photo in user's favorites
@@ -301,19 +359,23 @@ router.put('/:userID/favorites', requireAuthentication, function (req, res) {
 
         if (req.body && req.body.favorites && Array.isArray(req.body.favorites)) {
 
-            updateOneUser(req.params.userID, req.body.favorites, mongoDB)
+            updateOneUser(req.params.userID, req.body.favorites, mongoDB, res)
                 .then((results) => {
-                    if (user) {
+                    if (results === false) {
+                        res.status(400).json({
+                            error: "Unable to find photo"
+                        });
+                    }else{
                         res.status(200).json({
                             links: {
                                 user: `/users/${req.params.userID}/favorites`
                             }
                         });
-                    } else {
-                        next();
                     }
                 })
                 .catch((err) => {
+                    console.log(err);
+
                     res.status(500).json({
                         error: "Unable to update favorites. Please try again later."
                     });
