@@ -372,27 +372,40 @@ router.put('/:userID/favorites', requireAuthentication, function (req, res) {
 
         if (req.body && req.body.favorites && Array.isArray(req.body.favorites)) {
 
-            updateOneUser(req.params.userID, req.body.favorites, mongoDB, res)
-                .then((results) => {
-                    if (results === false) {
-                        res.status(400).json({
-                            error: "Unable to find photo"
-                        });
-                    }else{
-                        res.status(200).json({
-                            links: {
-                                user: `/users/${req.params.userID}/favorites`
-                            }
-                        });
-                    }
-                })
-                .catch((err) => {
-                    console.log(err);
+            let check = true;
 
-                    res.status(500).json({
-                        error: "Unable to update favorites. Please try again later."
+            for (let fav in req.body.favorites){
+                if (req.body.favorites[fav].length !== 24){
+                    check = false;
+                    res.status(400).json({
+                        error: "Unable to find photo"
+                    })
+                }
+            }
+
+            if (check === true) {
+                updateOneUser(req.params.userID, req.body.favorites, mongoDB, res)
+                    .then((results) => {
+                        if (results === false) {
+                            res.status(400).json({
+                                error: "Unable to find photo"
+                            });
+                        } else {
+                            res.status(200).json({
+                                links: {
+                                    user: `/users/${req.params.userID}/favorites`
+                                }
+                            });
+                        }
+                    })
+                    .catch((err) => {
+                        console.log(err);
+
+                        res.status(500).json({
+                            error: "Unable to update favorites. Please try again later."
+                        });
                     });
-                });
+            }
 
         }else{
             res.status(400).json({
